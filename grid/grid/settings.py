@@ -126,11 +126,14 @@ WSGI_APPLICATION = 'grid.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'grid_d8zq',
+        'USER': 'grid',
+        'PASSWORD': 'rjWXfTOFs2vnWA5RogndHquhaeCjVKYv',
+        'HOST': 'dpg-cjbk3tvdb61s739hpncg-a.oregon-postgres.render.com',
+        'PORT': '5432',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
