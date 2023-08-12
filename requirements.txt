@@ -6,3 +6,4 @@ djangorestframework-recursive==0.1.2
 djangorestframework-simplejwt==4.8.0
 psycopg2
 psycopg2-binary
+gunicorn==20.1.0
