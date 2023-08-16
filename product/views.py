@@ -65,4 +65,42 @@ def deleteWishList(request):
     return Response('WishList Item Removed')
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def addtoCart(request):
+    data = request.data
+    product_inventory_id = data['product_inventory_id']
+    quantity = data['quantity']
+    product_inventory = ProductInventory.objects.get(id=product_inventory_id)
+    if(Cart.objects.filter(productInventoryId=product_inventory,created_by=request.user).exists()):
+        return Response('Product Already in Cart'
+        ,status=status.HTTP_400_BAD_REQUEST)
+    cart = Cart.objects.create(
+        created_by=request.user,
+        productInventoryId = product_inventory,
+        quantity = quantity,
+        total_price = product_inventory.price * quantity
+    )
+    serializer = CartSerializer(cart, many=False)
+    return Response(serializer.data)
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getCart(request):
+    cart = Cart.objects.filter(created_by=request.user)
+    serializer = CartSerializer(cart, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def deleteCart(request):
+    data = request.data
+    cart_id = data['cart_id']
+    if(Cart.objects.filter(id=cart_id,created_by=request.user).exists() == False):
+        return Response('Cart Item Not Found'
+        ,status=status.HTTP_400_BAD_REQUEST
+        )
+    cart = Cart.objects.get(id=cart_id)
+    cart.delete()
+    return Response('Cart Item Removed')

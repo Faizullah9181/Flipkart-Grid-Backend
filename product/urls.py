@@ -9,4 +9,7 @@ urlpatterns = [
     path('createWishlist/', views.addtoWishList, name='createWishlist'),
     path('getWishlist/', views.getWishList, name='getWishlist'),
     path('deleteWishlist/', views.deleteWishList, name='deleteWishlist'),
+    path('addtocart/', views.addtoCart, name='addtocart'),
+    path('getCart/', views.getCart, name='getCart'),
+    path('deleteCart/', views.deleteCart, name='deleteCart')
 ]
