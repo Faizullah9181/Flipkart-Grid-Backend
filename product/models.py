@@ -30,8 +30,14 @@ class ProductInventory(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+       return self.productId.name
+
 class ProductImage(models.Model):
     ProductInventoryId = models.ForeignKey(ProductInventory, on_delete=models.CASCADE)
     image = models.CharField(max_length=2555)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+         return self.ProductInventoryId.productId.name
