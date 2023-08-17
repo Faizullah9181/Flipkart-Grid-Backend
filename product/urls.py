@@ -14,4 +14,7 @@ urlpatterns = [
     path('deleteCart/', views.deleteCart, name='deleteCart'),
     path('createHistory/', views.createHistory, name='createHistory'),
     path('getHistory/', views.getrecommenededProducts, name='getHistory'),
+    path('generateImage/', views.generateImage, name='generateImage'),
+    path('generateImagetoImage/', views.imageToimage, name='generateImagetoImage'),
+    path('trending/', views.generatetrendingImage, name='trending'),
 ]

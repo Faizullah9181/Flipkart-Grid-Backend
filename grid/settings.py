@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
+import cloudinary
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = BASE_DIR = Path(__file__).resolve().parent.parent
@@ -177,3 +178,10 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
+
+
+cloudinary.config(
+    cloud_name='dqgmiqxow',
+    api_key='456882248739275',
+    api_secret='nWj5rwG69XffkjUEZYFjCj57sOo',
+)

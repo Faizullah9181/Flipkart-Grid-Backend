@@ -5,6 +5,8 @@ from .models import Category, Product, ProductInventory, Cart, WishList, UserHis
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from .imagegenration import get_image, get_image_from_image
+from .utils import strUtiltext, strUtilimage
 
 
 @api_view(['GET'])
@@ -129,5 +131,49 @@ def getrecommenededProducts(request):
     productIds = UserHistory.objects.filter(
         created_by=request.user).values_list('productId', flat=True)
     products = Product.objects.filter(id__in=productIds)
+    serializer = ProductSerializer(products, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+def generateImage(request):
+    data = request.data
+    prompt = data['prompt']
+    image_data = get_image(prompt)
+    return Response(image_data)
+
+
+@api_view(['POST'])
+def imageToimage(request):
+    data = request.data
+    image_url = data['image_url']
+    prompt = data['prompt']
+    image_data = get_image_from_image(prompt, image_url)
+    return Response(image_data)
+
+
+@api_view(['POST'])
+def generatetrendingImage(request):
+    data = request.data
+    prompt = data['prompt']
+    product_description = strUtiltext(
+        'generate more details about this ' + prompt + ' only 50 words description')
+    product_name = strUtiltext(
+        'generate product name for this ' + prompt + ' only 10 words name very short')
+    product_name_words = product_name['content'].split()[:10]
+    truncated_product_name = ' '.join(product_name_words)
+    image_data = strUtilimage('generate ' + prompt + ' 10 images')
+    image_data = image_data['images']
+    product_ids = []
+    for image in image_data:
+        product = Product.objects.create(
+            name=truncated_product_name,
+            description=product_description['content'],
+            image=image,
+            categoryId=Category.objects.get(id=1)
+        )
+        product_ids.append(product.id)
+        product.save()
+    products = Product.objects.filter(id__in=product_ids)
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
