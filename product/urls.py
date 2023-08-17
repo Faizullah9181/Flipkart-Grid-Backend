@@ -11,5 +11,7 @@ urlpatterns = [
     path('deleteWishlist/', views.deleteWishList, name='deleteWishlist'),
     path('addtocart/', views.addtoCart, name='addtocart'),
     path('getCart/', views.getCart, name='getCart'),
-    path('deleteCart/', views.deleteCart, name='deleteCart')
+    path('deleteCart/', views.deleteCart, name='deleteCart'),
+    path('createHistory/', views.createHistory, name='createHistory'),
+    path('getHistory/', views.getrecommenededProducts, name='getHistory'),
 ]

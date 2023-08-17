@@ -1,11 +1,10 @@
-from .serializers import CategorySerializer, ProductSerializer,ProductInventorySerializer,CartSerializer,WishListSerializer
+from .serializers import CategorySerializer, ProductSerializer, ProductInventorySerializer, CartSerializer, WishListSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Category, Product, ProductInventory,Cart ,WishList
+from .models import Category, Product, ProductInventory, Cart, WishList, UserHistory
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-
 
 
 @api_view(['GET'])
@@ -14,11 +13,13 @@ def getProducts(request):
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
 
+
 @api_view(['GET'])
 def getProduct(request, pk):
     product = Product.objects.get(id=pk)
     serializer = ProductSerializer(product, many=False)
     return Response(serializer.data)
+
 
 @api_view(['GET'])
 def getCategories(request):
@@ -27,22 +28,21 @@ def getCategories(request):
     return Response(serializer.data)
 
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def addtoWishList(request):
     data = request.data
     product_inventory_id = data['product_inventory_id']
     product_inventory = ProductInventory.objects.get(id=product_inventory_id)
-    if(WishList.objects.filter(productInventoryId=product_inventory,created_by=request.user).exists()):
-        return Response('Product Already in WishList'
-        ,status=status.HTTP_400_BAD_REQUEST)
+    if (WishList.objects.filter(productInventoryId=product_inventory, created_by=request.user).exists()):
+        return Response('Product Already in WishList', status=status.HTTP_400_BAD_REQUEST)
     wishlist = WishList.objects.create(
         created_by=request.user,
-        productInventoryId = product_inventory
+        productInventoryId=product_inventory
     )
     serializer = WishListSerializer(wishlist, many=False)
     return Response(serializer.data)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -51,15 +51,15 @@ def getWishList(request):
     serializer = WishListSerializer(wishlist, many=True)
     return Response(serializer.data)
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def deleteWishList(request):
     data = request.data
     wishlist_id = data['wishlist_id']
-    if(WishList.objects.filter(id=wishlist_id,created_by=request.user).exists() == False):
-        return Response('WishList Item Not Found'
-        ,status=status.HTTP_400_BAD_REQUEST
-        )
+    if (WishList.objects.filter(id=wishlist_id, created_by=request.user).exists() == False):
+        return Response('WishList Item Not Found', status=status.HTTP_400_BAD_REQUEST
+                        )
     wishlist = WishList.objects.get(id=wishlist_id)
     wishlist.delete()
     return Response('WishList Item Removed')
@@ -72,14 +72,13 @@ def addtoCart(request):
     product_inventory_id = data['product_inventory_id']
     quantity = data['quantity']
     product_inventory = ProductInventory.objects.get(id=product_inventory_id)
-    if(Cart.objects.filter(productInventoryId=product_inventory,created_by=request.user).exists()):
-        return Response('Product Already in Cart'
-        ,status=status.HTTP_400_BAD_REQUEST)
+    if (Cart.objects.filter(productInventoryId=product_inventory, created_by=request.user).exists()):
+        return Response('Product Already in Cart', status=status.HTTP_400_BAD_REQUEST)
     cart = Cart.objects.create(
         created_by=request.user,
-        productInventoryId = product_inventory,
-        quantity = quantity,
-        total_price = product_inventory.price * quantity
+        productInventoryId=product_inventory,
+        quantity=quantity,
+        total_price=product_inventory.price * quantity
     )
     serializer = CartSerializer(cart, many=False)
     return Response(serializer.data)
@@ -92,15 +91,43 @@ def getCart(request):
     serializer = CartSerializer(cart, many=True)
     return Response(serializer.data)
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def deleteCart(request):
     data = request.data
     cart_id = data['cart_id']
-    if(Cart.objects.filter(id=cart_id,created_by=request.user).exists() == False):
-        return Response('Cart Item Not Found'
-        ,status=status.HTTP_400_BAD_REQUEST
-        )
+    if (Cart.objects.filter(id=cart_id, created_by=request.user).exists() == False):
+        return Response('Cart Item Not Found', status=status.HTTP_400_BAD_REQUEST
+                        )
     cart = Cart.objects.get(id=cart_id)
     cart.delete()
     return Response('Cart Item Removed')
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def createHistory(request):
+    data = request.data
+    product_id = data['product_id']
+    data = data['data']
+    if (UserHistory.objects.filter(productId=product_id, created_by=request.user).exists()):
+        return Response('Something Went Wrong', status=status.HTTP_400_BAD_REQUEST
+                        )
+    product = Product.objects.get(id=product_id)
+    history = UserHistory.objects.create(
+        created_by=request.user,
+        productId=product,
+        data=data
+    )
+    return Response('History Created')
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getrecommenededProducts(request):
+    productIds = UserHistory.objects.filter(
+        created_by=request.user).values_list('productId', flat=True)
+    products = Product.objects.filter(id__in=productIds)
+    serializer = ProductSerializer(products, many=True)
+    return Response(serializer.data)

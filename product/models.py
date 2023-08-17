@@ -50,3 +50,12 @@ class WishList(models.Model):
 
     def __str__(self):
         return self.productInventoryId.productId.name
+    
+
+class UserHistory(models.Model):
+    productId = models.ForeignKey(Product, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(Users, on_delete=models.CASCADE)
+    data = models.TextField()
+
+    def __str__(self):
+        return self.productId.name+" "+self.created_by.name

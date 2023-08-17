@@ -26,11 +26,6 @@ class ProductSerializer(serializers.ModelSerializer):
         return ProductInventorySerializer(inventory, many=True).data
     
 
-class CartSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Cart
-        fields = ('id','created_by','quantity','total_price')
-
 
 class ProductSerializerForWC(serializers.ModelSerializer):
     class Meta:
@@ -43,6 +38,19 @@ class WishListSerializer(serializers.ModelSerializer):
     class Meta:
         model = WishList
         fields = ('id','created_by','productInventoryId','product')
+
+    def get_product(self, obj):
+        product = Product.objects.filter(id=obj.productInventoryId.productId.id)
+        return ProductSerializerForWC(product, many=True).data
+    
+
+
+class CartSerializer(serializers.ModelSerializer):
+    product = serializers.SerializerMethodField()
+    class Meta:
+        model = Cart
+        fields = ('id','created_by','quantity','total_price','product')
+
 
     def get_product(self, obj):
         product = Product.objects.filter(id=obj.productInventoryId.productId.id)
