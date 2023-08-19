@@ -1,46 +1,30 @@
-from .models import Product, ProductInventory,Category,Cart,WishList
+from .models import Product,Cart,WishList,UserHistory,Order,RequestedProducts
 from user.models import Users
 from rest_framework import serializers
 
 
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = ('id','name','slug','type')
-
-class ProductInventorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductInventory
-        fields = ('id','productId','size','price')
-
-
 class ProductSerializer(serializers.ModelSerializer):
-    inventory = serializers.SerializerMethodField()
     class Meta:
         model = Product
-        fields = ('id','name','description','gender','categoryId','color','image','inventory')
+        fields = ('id','name','description','gender','color','image','price','brand')
 
     
-    def get_inventory(self, obj):
-        inventory = ProductInventory.objects.filter(productId=obj.id)
-        return ProductInventorySerializer(inventory, many=True).data
     
-
 
 class ProductSerializerForWC(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ('id','name','description','gender','categoryId','color','image')
+        fields = ('id','name','description','gender','color','image','price','brand')
     
 
 class WishListSerializer(serializers.ModelSerializer):
     product = serializers.SerializerMethodField()
     class Meta:
         model = WishList
-        fields = ('id','created_by','productInventoryId','product')
+        fields = ('id','created_by','product')
 
     def get_product(self, obj):
-        product = Product.objects.filter(id=obj.productInventoryId.productId.id)
+        product = Product.objects.filter(id=obj.productId.id)
         return ProductSerializerForWC(product, many=True).data
     
 
@@ -53,5 +37,17 @@ class CartSerializer(serializers.ModelSerializer):
 
 
     def get_product(self, obj):
-        product = Product.objects.filter(id=obj.productInventoryId.productId.id)
+        product = Product.objects.filter(id=obj.productId.id)
+        return ProductSerializerForWC(product, many=True).data
+    
+
+class OrderSerializer(serializers.ModelSerializer):
+    product = serializers.SerializerMethodField()
+    class Meta:
+        model = Order
+        fields = ('id','created_by','product')
+
+
+    def get_product(self, obj):
+        product = Product.objects.filter(id=obj.productId.id)
         return ProductSerializerForWC(product, many=True).data

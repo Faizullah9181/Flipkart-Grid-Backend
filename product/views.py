@@ -1,17 +1,22 @@
-from .serializers import CategorySerializer, ProductSerializer, ProductInventorySerializer, CartSerializer, WishListSerializer
+import re
+from .serializers import ProductSerializer, CartSerializer, WishListSerializer, OrderSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Category, Product, ProductInventory, Cart, WishList, UserHistory
+from .models import Product, Cart, WishList, UserHistory, Order, RequestedProducts
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from .imagegenration import get_image, get_image_from_image
-from .utils import strUtiltext, strUtilimage
+from .utils import strUtiltext, strUtilimage, get_details
+from django.db.models import Q
+from functools import reduce
+import operator
+import random
 
 
 @api_view(['GET'])
 def getProducts(request):
-    products = Product.objects.all().order_by('-created_at')
+    products = Product.objects.all().order_by('?')
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
 
@@ -23,24 +28,17 @@ def getProduct(request, pk):
     return Response(serializer.data)
 
 
-@api_view(['GET'])
-def getCategories(request):
-    categories = Category.objects.all()
-    serializer = CategorySerializer(categories, many=True)
-    return Response(serializer.data)
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def addtoWishList(request):
     data = request.data
-    product_inventory_id = data['product_inventory_id']
-    product_inventory = ProductInventory.objects.get(id=product_inventory_id)
-    if (WishList.objects.filter(productInventoryId=product_inventory, created_by=request.user).exists()):
+    product_id = data['product_id']
+    product = Product.objects.get(id=product_id)
+    if (WishList.objects.filter(productId=product, created_by=request.user).exists()):
         return Response('Product Already in WishList', status=status.HTTP_400_BAD_REQUEST)
     wishlist = WishList.objects.create(
         created_by=request.user,
-        productInventoryId=product_inventory
+        productId=product
     )
     serializer = WishListSerializer(wishlist, many=False)
     return Response(serializer.data)
@@ -71,16 +69,16 @@ def deleteWishList(request):
 @permission_classes([IsAuthenticated])
 def addtoCart(request):
     data = request.data
-    product_inventory_id = data['product_inventory_id']
+    product_id = data['product_id']
     quantity = data['quantity']
-    product_inventory = ProductInventory.objects.get(id=product_inventory_id)
-    if (Cart.objects.filter(productInventoryId=product_inventory, created_by=request.user).exists()):
+    product = Product.objects.get(id=product_id)
+    if (Cart.objects.filter(productId=product, created_by=request.user).exists()):
         return Response('Product Already in Cart', status=status.HTTP_400_BAD_REQUEST)
     cart = Cart.objects.create(
         created_by=request.user,
-        productInventoryId=product_inventory,
+        productId=product,
         quantity=quantity,
-        total_price=product_inventory.price * quantity
+        total_price=product.price * quantity
     )
     serializer = CartSerializer(cart, many=False)
     return Response(serializer.data)
@@ -156,24 +154,156 @@ def imageToimage(request):
 def generatetrendingImage(request):
     data = request.data
     prompt = data['prompt']
+    color = prompt.split(' ')[0]
     product_description = strUtiltext(
         'generate more details about this ' + prompt + ' only 50 words description')
+    product_description = product_description['content']
+    product_description = product_description[1]
     product_name = strUtiltext(
-        'generate product name for this ' + prompt + ' only 10 words name very short')
-    product_name_words = product_name['content'].split()[:10]
-    truncated_product_name = ' '.join(product_name_words)
+        'Generate a unique and catchy product title ' + prompt + ' only in 10 words')
+    product_name_words = product_name['content'][1]
+    product_name_words = product_name_words.split(',')[0].split('.')[0]
+    product_name_words = product_name_words.split(' ')
+    product_name_words = product_name_words[:15]
+    product_name_words = ' '.join(product_name_words)
+    product_gender = strUtiltext(
+        'gender of this product' + prompt + 'in one word please dont send any other information only send response in men or women i want only one word response')
+
+    product_gender = strUtiltext(
+        'give gender of this product in one word')
+
+    gender_content = product_gender['content'][0].lower()
+    if 'women' in gender_content:
+        gender = 'women'
+    elif 'men' in gender_content:
+        gender = 'men'
     image_data = strUtilimage('generate ' + prompt + ' 10 images')
     image_data = image_data['images']
     product_ids = []
     for image in image_data:
         product = Product.objects.create(
-            name=truncated_product_name,
-            description=product_description['content'],
+            name=product_name_words,
+            description=product_description,
+            price=random.randint(1000, 2000),
+            color=color,
+            brand=random.choice(['Flipkart', 'Myntra', 'Amazon', 'Ajio']),
             image=image,
-            categoryId=Category.objects.get(id=1)
+            gender=gender
         )
         product_ids.append(product.id)
         product.save()
+    product_db_name = Product.objects.filter(name__icontains=prompt)
+    product_db_description = Product.objects.filter(
+        description__icontains=prompt)
+    product_db = list(set(list(product_db_name) +
+                      list(product_db_description)))
+    product_db = product_db[:4]
+    print("a", product_db)
     products = Product.objects.filter(id__in=product_ids)
+    products = products[:8]
+    print("b", products)
+    products = list(set(list(products) + list(product_db)))
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def searchProductInDb(request):
+    cart_product_ids = Cart.objects.filter(
+        created_by=request.user).values_list('productId', flat=True)
+    wishlist_product_ids = WishList.objects.filter(
+        created_by=request.user).values_list('productId', flat=True)
+    user_history_product_ids = UserHistory.objects.filter(
+        created_by=request.user).values_list('productId', flat=True)
+    product_ids = list(set(list(cart_product_ids) +
+                           list(wishlist_product_ids) + list(user_history_product_ids)))
+
+    products = Product.objects.filter(id__in=product_ids)
+    if (len(products) == 0):
+        return Response('Sorry No Products Found', status=status.HTTP_400_BAD_REQUEST
+                        )
+    p_names = []
+    p_descriptions = []
+    for product in products:
+        p_names.append(product.name)
+        p_descriptions.append(product.description)
+    p_names = [x for xs in p_names for x in xs.split()]
+    name_queries = [Q(name__icontains=x) for x in p_names]
+    description_queries = [Q(description__icontains=x) for x in p_descriptions]
+    name_query = reduce(operator.or_, name_queries)
+    description_query = reduce(operator.or_, description_queries)
+    products = Product.objects.filter(
+        name_query | description_query).exclude(id__in=product_ids)
+    products = sorted(products, key=lambda x: x.created_at, reverse=True)
+    random.shuffle(products)
+    products = products[:12]
+    serializer = ProductSerializer(products, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def searchProductbyLocationAndTrends(request):
+    user = request.user
+    location = user.address
+    get_trends = get_details("Give me a list of popular fashion trends on instagram in " +
+                             location + " as a list. Give only the name of the trends.")
+    get_trends = get_trends.replace('\n', ', ')
+    get_trends = get_trends.split('.')
+
+    cleaned_data = [re.sub(r'[^a-zA-Z ]+', '', item) for item in get_trends]
+    cleaned_data = [re.sub(r'n$', '', re.sub(r'[^a-zA-Z ]+', '', item))
+                    for item in get_trends]
+    split_words = []
+    for style in cleaned_data:
+        split_words.extend(style.split())
+
+    cleaned_data = [item for item in split_words if item]
+    product_query = reduce(
+        operator.or_, [Q(name__icontains=x) for x in cleaned_data])
+
+    product = Product.objects.filter(product_query)
+    if product:
+        product = list(product)
+        random.shuffle(product)
+        serializer = ProductSerializer(product, many=True)
+        return Response(serializer.data)
+    else:
+        return Response("No product found")
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def createOrder(request):
+    data = request.data
+    product_id = data['product_id']
+    product = Product.objects.get(id=product_id)
+    order = Order.objects.create(
+        productId=product,
+        created_by=request.user,
+        total_price=product.price
+    )
+    serializer = OrderSerializer(order)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getOrders(request):
+    orders = Order.objects.filter(created_by=request.user)
+    serializer = OrderSerializer(orders, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def requestProduct(request):
+    data = request.data
+    product_image = data['product_image']
+    request_product = RequestedProducts.objects.create(
+        productimage=product_image,
+        created_by=request.user
+    )
+    request_product.save()
+    return Response('Request Sent')

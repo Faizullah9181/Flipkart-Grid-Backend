@@ -1,10 +1,11 @@
 from django.contrib import admin
-from .models import Category, Product, ProductInventory,Cart ,WishList,UserHistory
+from .models import Product,Cart ,WishList,UserHistory,Order,RequestedProducts
 # Register your models here.
 
-admin.site.register(Category)
+
 admin.site.register(Product)
-admin.site.register(ProductInventory)
 admin.site.register(Cart)
 admin.site.register(WishList)
 admin.site.register(UserHistory)
+admin.site.register(Order)
+admin.site.register(RequestedProducts)

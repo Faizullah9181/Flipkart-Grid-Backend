@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:postgresql://dpg-cjbk3tvdb61s739hpncg-a.oregon-postgres.render.com:5432/grid_d8zq</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="db.sqlite3" uuid="94e1ebe9-d0f0-4be6-a0c7-512f0118d3bd">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:db.sqlite3</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

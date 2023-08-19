@@ -5,7 +5,6 @@ urlpatterns = [
 
     path('get/', views.getProducts, name='getProducts'),
     path('get/<str:pk>/', views.getProduct, name='getProduct'),
-    path('getCategory/', views.getCategories, name='getCategory'),
     path('createWishlist/', views.addtoWishList, name='createWishlist'),
     path('getWishlist/', views.getWishList, name='getWishlist'),
     path('deleteWishlist/', views.deleteWishList, name='deleteWishlist'),
@@ -17,4 +16,9 @@ urlpatterns = [
     path('generateImage/', views.generateImage, name='generateImage'),
     path('generateImagetoImage/', views.imageToimage, name='generateImagetoImage'),
     path('trending/', views.generatetrendingImage, name='trending'),
+    path('searchInDb/', views.searchProductInDb, name='searchInDb'),
+    path('searchbyLocation/', views.searchProductbyLocationAndTrends, name='searchbyLocation'),
+    path('createOrder/', views.createOrder, name='createOrder'),
+    path('getOrder/', views.getOrders, name='getOrder'),
+    path('requestProduct/', views.requestProduct, name='requestProduct')
 ]
