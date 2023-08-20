@@ -123,20 +123,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'grid.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/3.0/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'grid_d8zq',
-#         'USER': 'grid',
-#         'PASSWORD': 'rjWXfTOFs2vnWA5RogndHquhaeCjVKYv',
-#         'HOST': 'dpg-cjbk3tvdb61s739hpncg-a.oregon-postgres.render.com',
-#         'PORT': '5432',
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -188,7 +174,5 @@ STATICFILES_DIRS = [
 
 
 cloudinary.config(
-    cloud_name='dqgmiqxow',
-    api_key='456882248739275',
-    api_secret='nWj5rwG69XffkjUEZYFjCj57sOo',
+        "YOUR CREDS"
 )

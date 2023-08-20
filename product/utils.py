@@ -2,8 +2,7 @@ from bardapi import BardCookies
 import requests
 
 cookie_dict = {
-    "__Secure-1PSID": "ZgjPlYPjnGfpkX8GCuwGNwnr-8jJn6jjZwxi-ho7Mp6mmh8xCqfwP-tpBxVgn8PN_xA9tg.",
-    "__Secure-1PSIDTS": "sidts-CjEBSAxbGZdA3FoFlZsABiaKhyCBuykPkuKhQ1FQEAJKwpgho45-eCGkaZI5JtTZkOKsEAA"
+   "YOUR KEY": "YOUR VALUE"
 }
 
 bard = BardCookies(cookie_dict=cookie_dict)
@@ -54,11 +53,8 @@ def strUtilimage(str):
     data = bard.get_answer(str)
     return getImagesFromBard(data)
 
-# https://tg-api-zehr.onrender.com/api/v1/llmodels/bai
-
-
-def get_details(prompt):
-    url = "https://tg-api-zehr.onrender.com/api/v1/llmodels/bai"
+def get_details(prompt,engine):
+    url = "yourllmapiurl"+engine
     payload ={
         "prompt": prompt
     }

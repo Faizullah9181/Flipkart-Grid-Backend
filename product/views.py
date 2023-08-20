@@ -24,8 +24,13 @@ def getProducts(request):
 @api_view(['GET'])
 def getProduct(request, pk):
     product = Product.objects.get(id=pk)
+    product_name = product.name
+    product_name = product_name.split(' ')
+    product_query = reduce(operator.or_, (Q(name__icontains=item) for item in product_name))
+    products = Product.objects.filter(product_query).exclude(id=pk).order_by('-created_at')
     serializer = ProductSerializer(product, many=False)
-    return Response(serializer.data)
+    similar_products = ProductSerializer(products, many=True)
+    return Response({'product': serializer.data, 'similar_products': similar_products.data})
 
 
 @api_view(['POST'])
@@ -216,8 +221,10 @@ def searchProductInDb(request):
         created_by=request.user).values_list('productId', flat=True)
     user_history_product_ids = UserHistory.objects.filter(
         created_by=request.user).values_list('productId', flat=True)
+    order_history_product_ids = Order.objects.filter(
+        created_by=request.user).values_list('productId', flat=True)
     product_ids = list(set(list(cart_product_ids) +
-                           list(wishlist_product_ids) + list(user_history_product_ids)))
+                           list(wishlist_product_ids) + list(user_history_product_ids) + list(order_history_product_ids)))
 
     products = Product.objects.filter(id__in=product_ids)
     if (len(products) == 0):
@@ -248,7 +255,7 @@ def searchProductbyLocationAndTrends(request):
     user = request.user
     location = user.address
     get_trends = get_details("Give me a list of popular fashion trends on instagram in " +
-                             location + " as a list. Give only the name of the trends.")
+                             location + " as a list. Give only the name of the trends.","bai")
     get_trends = get_trends.replace('\n', ', ')
     get_trends = get_trends.split('.')
 

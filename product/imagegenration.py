@@ -50,7 +50,7 @@ def get_image_from_image(prompt, image_url):
         payload = {
             "init_images": [base64_image],
             "prompt": prompt,
-            "steps": 5,
+            "steps": 100,
             "negative_prompt": "",
             "sampler_name": "Euler a",
             "cfg_scale": 7,
