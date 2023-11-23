@@ -6,8 +6,6 @@
 - Run `python manage.py runserver`
 
 ## 📝 Notes:
-- This Project Is Made For flipkart grid 5.0 Hackathon
-- This Project Is Made By [Faizullah](https://github.com/Faizullah9181), [Aatir Nadim](https://github.com/AatirNadim),[Bilal Sajid](https://github.com/BilalSajid173)
 - Project Title:-Conversational Fashion Outfit Generator powered by GenAI
 - Project Description:-A web application that generates fashion outfits based on the user's choice of clothing items and accessories. The user can also chat with the AI to get suggestions for outfits based on the occasion, and other factors.
 ---
